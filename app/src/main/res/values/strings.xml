@@ -1,6 +1,59 @@
 <resources>
-    <string name="app_name">project</string>
-    <string name="title_home">Home</string>
-    <string name="title_dashboard">Dashboard</string>
-    <string name="title_notifications">Notifications</string>
+    <string name="app_name">CantoLeap</string>
+
+    <!-- Bottom Navigation -->
+    <string name="title_vocabulary">Vocabulary</string>
+    <string name="title_learning">Learn</string>
+    <string name="title_practice">Practice</string>
+
+    <!-- Button Text -->
+    <string name="i_know_it">I know it</string>
+    <string name="still_learning">Still learning</string>
+    <string name="submit">Submit</string>
+    <string name="next">Next</string>
+    <string name="play_audio">Play pronunciation</string>
+    <string name="close">Close</string>
+
+    <!-- Authentication -->
+    <string name="login">Login</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="logout">Logout</string>
+
+    <!-- Demo Mode -->
+    <string name="demo_mode">Demo Mode</string>
+    <string name="reset_progress">Reset Progress</string>
+    <string name="switch_user">Switch User</string>
+    <string name="reset_community">Reset Community Content</string>
+    <string name="user_type_beginner">Beginner</string>
+    <string name="user_type_intermediate">Intermediate</string>
+    <string name="user_type_advanced">Advanced</string>
+    <string name="reset_progress_section">Reset User Progress</string>
+    <string name="switch_user_section">Switch Demo User</string>
+    <string name="reset_community_section">Reset Community Content</string>
+
+    <!-- Toast Messages -->
+    <string name="progress_reset">Progress has been reset</string>
+    <string name="switched_user">Switched to %1$s user</string>
+    <string name="failed_to_switch">Failed to switch user</string>
+    <string name="select_user_type">Please select a user type</string>
+    <string name="community_reset">Community content has been reset</string>
+    <string name="select_an_answer">Please select an answer</string>
+
+    <!-- Progress Format -->
+    <string name="progress_format">%1$d/%2$d</string>
+    <string name="words_progress_format">%1$d/%2$d words</string>
+
+    <!-- Category Descriptions -->
+    <string name="category_greetings">Basic greetings and introductions</string>
+    <string name="category_family">Family members and relationships</string>
+    <string name="category_numbers">Numbers and counting</string>
+    <string name="category_food">Common food items and restaurant phrases</string>
+    <string name="category_useful_phrases">Essential everyday expressions</string>
+    <string name="category_default">Cantonese vocabulary</string>
+
+    <!-- Error Messages -->
+    <string name="audio_not_found">Audio resource not found: %1$s</string>
+    <string name="error_playing_audio">Error playing audio</string>
 </resources>

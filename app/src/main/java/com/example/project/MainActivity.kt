@@ -22,14 +22,27 @@ class MainActivity : AppCompatActivity() {
         val navView: BottomNavigationView = binding.navView
 
         val navController = findNavController(R.id.nav_host_fragment_activity_main)
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
+        // Define top level destinations - no back button for these
         val appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications
+                R.id.navigation_vocabulary, R.id.navigation_learning, R.id.navigation_practice
             )
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+
+        // Add menu to enable Demo Mode
+        val demoMenuItem = navView.menu.add(0, R.id.menu_demo_mode, 0, getString(R.string.demo_mode))
+        demoMenuItem.setIcon(android.R.drawable.ic_menu_manage)
+        demoMenuItem.setOnMenuItemClickListener {
+            // Show demo mode dialog
+            showDemoModeDialog()
+            true
+        }
+    }
+
+    private fun showDemoModeDialog() {
+        val dialog = DemoModeDialog()
+        dialog.show(supportFragmentManager, "DemoModeDialog")
     }
 }

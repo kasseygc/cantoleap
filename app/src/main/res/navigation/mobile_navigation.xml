@@ -1,25 +1,39 @@
-<?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@+id/navigation_home">
+    app:startDestination="@+id/navigation_vocabulary">
 
     <fragment
-        android:id="@+id/navigation_home"
-        android:name="com.example.project.ui.home.HomeFragment"
-        android:label="@string/title_home"
-        tools:layout="@layout/fragment_home" />
+        android:id="@+id/navigation_vocabulary"
+        android:name="com.example.project.ui.vocabulary.VocabularyFragment"
+        android:label="@string/title_vocabulary"
+        tools:layout="@layout/fragment_vocabulary" >
+        <action
+            android:id="@+id/action_navigation_vocabulary_to_navigation_learning"
+            app:destination="@id/navigation_learning" />
+    </fragment>
 
     <fragment
-        android:id="@+id/navigation_dashboard"
-        android:name="com.example.project.ui.dashboard.DashboardFragment"
-        android:label="@string/title_dashboard"
-        tools:layout="@layout/fragment_dashboard" />
+        android:id="@+id/navigation_learning"
+        android:name="com.example.project.ui.learning.LearningFragment"
+        android:label="@string/title_learning"
+        tools:layout="@layout/fragment_learning" >
+        <argument
+            android:name="category"
+            app:argType="string"
+            android:defaultValue="Greetings" />
+    </fragment>
 
     <fragment
-        android:id="@+id/navigation_notifications"
-        android:name="com.example.project.ui.notifications.NotificationsFragment"
-        android:label="@string/title_notifications"
-        tools:layout="@layout/fragment_notifications" />
+        android:id="@+id/navigation_practice"
+        android:name="com.example.project.ui.practice.PracticeFragment"
+        android:label="@string/title_practice"
+        tools:layout="@layout/fragment_practice" >
+        <argument
+            android:name="category"
+            app:argType="string"
+            android:defaultValue="@null"
+            app:nullable="true" />
+    </fragment>
 </navigation>
