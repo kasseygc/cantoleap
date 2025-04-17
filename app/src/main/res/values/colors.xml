@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- CantoLeap Colors -->
     <color name="primary">#6495ED</color>
     <color name="primary_dark">#4169E1</color>
     <color name="accent">#03DAC5</color>
@@ -10,4 +11,11 @@
     <color name="option_selected">#E6E6FA</color>
     <color name="option_correct">#90EE90</color>
     <color name="option_incorrect">#FFC0CB</color>
+
+    <!-- Default Android Colors (required by the theme) -->
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
 </resources>
