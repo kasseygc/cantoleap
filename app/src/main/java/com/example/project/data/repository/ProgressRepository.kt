@@ -1,12 +1,12 @@
 package com.example.project.data.repository
 
 import android.content.Context
-import com.example.project.data.local.VocabularyDbHelper
+import com.example.project.data.local.DatabaseManager
 import com.google.firebase.auth.FirebaseAuth
 
 class ProgressRepository(private val context: Context) {
 
-    private val dbHelper = VocabularyDbHelper(context)
+    private val databaseManager = DatabaseManager(context)
     private val auth = FirebaseAuth.getInstance()
 
     fun markWordAsKnown(vocabularyId: String) {
@@ -21,11 +21,11 @@ class ProgressRepository(private val context: Context) {
 
     fun resetProgress() {
         val userId = auth.currentUser?.uid ?: "anonymous"
-        val db = dbHelper.writableDatabase
+        val db = databaseManager.writableDatabase
 
         db.delete(
-            VocabularyDbHelper.TABLE_PROGRESS,
-            "${VocabularyDbHelper.COLUMN_USER_ID} = ?",
+            DatabaseManager.TABLE_PROGRESS,
+            "${DatabaseManager.COLUMN_USER_ID} = ?",
             arrayOf(userId)
         )
     }

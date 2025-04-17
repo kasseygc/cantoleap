@@ -1,11 +1,19 @@
 package com.example.project.ui.learning
 
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.project.data.models.VocabularyItem
+import com.example.project.data.repository.VocabularyRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-class LearningViewModel : ViewModel() {
+class LearningViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val repository = VocabularyRepository(application)
 
     private val _currentWord = MutableLiveData<VocabularyItem>().apply {
         // Sample data for testing
@@ -15,7 +23,8 @@ class LearningViewModel : ViewModel() {
             "你好",
             "nei5 hou2",
             "Hello",
-            "audio_hello"
+            "audio_hello",
+            1
         )
     }
 
@@ -34,21 +43,40 @@ class LearningViewModel : ViewModel() {
     val totalWords: LiveData<Int> = _totalWords
 
     // Sample vocabulary for testing
-    private val sampleVocabulary = listOf(
-        VocabularyItem("1", "Greetings", "你好", "nei5 hou2", "Hello", "audio_hello"),
-        VocabularyItem("2", "Greetings", "早晨", "zou2 san4", "Good morning", "audio_morning"),
-        VocabularyItem("3", "Greetings", "再見", "zoi3 gin3", "Goodbye", "audio_goodbye")
+    private var vocabularyItems = listOf(
+        VocabularyItem("1", "Greetings", "你好", "nei5 hou2", "Hello", "audio_hello", 1),
+        VocabularyItem("2", "Greetings", "早晨", "zou2 san4", "Good morning", "audio_morning", 1),
+        VocabularyItem("3", "Greetings", "再見", "zoi3 gin3", "Goodbye", "audio_goodbye", 1)
     )
 
     private var currentIndex = 0
 
     fun moveToNextWord() {
-        currentIndex = (currentIndex + 1) % sampleVocabulary.size
-        _currentWord.value = sampleVocabulary[currentIndex]
+        if (vocabularyItems.isEmpty()) return
+
+        currentIndex = (currentIndex + 1) % vocabularyItems.size
+        _currentWord.value = vocabularyItems[currentIndex]
         _progress.value = currentIndex + 1
     }
 
     fun markAsKnown() {
         // Will implement progress tracking later
+    }
+
+    fun loadCategory(category: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val items = repository.getVocabularyByCategory(category)
+
+            withContext(Dispatchers.Main) {
+                vocabularyItems = items
+                _totalWords.value = items.size
+
+                if (items.isNotEmpty()) {
+                    currentIndex = 0
+                    _currentWord.value = items[currentIndex]
+                    _progress.value = currentIndex + 1
+                }
+            }
+        }
     }
 }

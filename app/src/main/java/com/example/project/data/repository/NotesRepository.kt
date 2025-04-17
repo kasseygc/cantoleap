@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.project.data.models.Note
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
+import com.google.firebase.database.ServerValue
 
 class NotesRepository {
 

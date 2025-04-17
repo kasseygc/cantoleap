@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "619850264757",
+    "firebase_url": "https://project-kasseychang-default-rtdb.firebaseio.com",
     "project_id": "project-kasseychang",
     "storage_bucket": "project-kasseychang.firebasestorage.app"
   },

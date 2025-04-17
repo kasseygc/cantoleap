@@ -1,27 +1,30 @@
 package com.example.project.ui.vocabulary
 
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.project.data.models.VocabularyCategory
+import com.example.project.data.repository.VocabularyRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
-class VocabularyViewModel : ViewModel() {
+class VocabularyViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val _categories = MutableLiveData<List<VocabularyCategory>>().apply {
-        // For now, populate with sample data
-        value = getSampleCategories()
-    }
-
+    private val _categories = MutableLiveData<List<VocabularyCategory>>()
     val categories: LiveData<List<VocabularyCategory>> = _categories
 
-    // Sample data for testing - will be replaced with database calls
-    private fun getSampleCategories(): List<VocabularyCategory> {
-        return listOf(
-            VocabularyCategory("1", "Greetings", "Basic greetings and introductions", 20, 5),
-            VocabularyCategory("2", "Food", "Common food items and restaurant phrases", 30, 0),
-            VocabularyCategory("3", "Numbers", "Numbers and counting", 15, 10),
-            VocabularyCategory("4", "Family", "Family members and relationships", 25, 0),
-            VocabularyCategory("5", "Travel", "Transportation and directions", 25, 0)
-        )
+    private val repository = VocabularyRepository(application)
+
+    init {
+        loadCategories()
+    }
+
+    fun loadCategories() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val categoryList = repository.getCategories()
+            _categories.postValue(categoryList)
+        }
     }
 }

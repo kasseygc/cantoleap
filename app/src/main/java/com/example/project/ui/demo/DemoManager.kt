@@ -5,10 +5,12 @@ import android.util.Log
 import com.example.project.data.repository.ProgressRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
+import com.google.android.gms.tasks.Task
 
 class DemoManager(private val context: Context) {
 
     private val auth = FirebaseAuth.getInstance()
+    private val database = FirebaseDatabase.getInstance().reference
     private val progressRepository = ProgressRepository(context)
 
     fun resetUserProgress() {
@@ -42,7 +44,7 @@ class DemoManager(private val context: Context) {
 
     private fun createDemoAccount(email: String, password: String, callback: (Boolean) -> Unit) {
         auth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
+            .addOnCompleteListener { task: Task<com.google.firebase.auth.AuthResult> ->
                 if (task.isSuccessful) {
                     // Pre-populate some progress for demo accounts
                     prepopulateDemoData(email)
