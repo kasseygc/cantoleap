@@ -19,6 +19,16 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:progress="50" />
 
+    <ProgressBar
+        android:id="@+id/audio_loading_indicator"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="8dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/button_audio"
+        app:layout_constraintStart_toEndOf="@id/button_audio"
+        app:layout_constraintTop_toTopOf="@id/button_audio" />
+
     <TextView
         android:id="@+id/text_quiz_progress"
         android:layout_width="wrap_content"

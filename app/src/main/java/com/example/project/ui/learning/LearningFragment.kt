@@ -1,6 +1,6 @@
 package com.example.project.ui.learning
 
-import android.media.MediaPlayer
+import com.example.project.utils.AudioPlayer
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,6 +13,7 @@ import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -21,7 +22,8 @@ import com.example.project.R
 class LearningFragment : Fragment() {
 
     private lateinit var learningViewModel: LearningViewModel
-    private var mediaPlayer: MediaPlayer? = null
+    private lateinit var audioPlayer: AudioPlayer
+    private lateinit var loadingIndicator: ProgressBar
 
     private lateinit var cardView: CardView
     private lateinit var chineseTextView: TextView
@@ -42,6 +44,11 @@ class LearningFragment : Fragment() {
     ): View? {
         val root = inflater.inflate(R.layout.fragment_learning, container, false)
 
+        // Initialize AudioPlayer
+        audioPlayer = AudioPlayer(requireContext())
+
+        // Initialize views
+        loadingIndicator = root.findViewById(R.id.audio_loading_indicator)
         learningViewModel = ViewModelProvider(this).get(LearningViewModel::class.java)
 
         // Initialize views
@@ -88,7 +95,24 @@ class LearningFragment : Fragment() {
         // Setup audio button
         audioButton.setOnClickListener {
             learningViewModel.currentWord.value?.let { word ->
-                playAudio(word.audioRef)
+                loadingIndicator.visibility = View.VISIBLE
+                audioPlayer.playAudio(
+                    audioRef = word.audioRef,
+                    onStarted = {
+                        requireActivity().runOnUiThread {
+                            loadingIndicator.visibility = View.GONE
+                        }
+                    },
+                    onError = {
+                        requireActivity().runOnUiThread {
+                            loadingIndicator.visibility = View.GONE
+                            Toast.makeText(context, getString(R.string.audio_load_error), Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    onCompleted = {
+                        // Audio playback finished
+                    }
+                )
             }
         }
 
@@ -158,34 +182,9 @@ class LearningFragment : Fragment() {
         cardView.startAnimation(frontAnimation)
     }
 
-    private fun playAudio(audioRef: String) {
-        try {
-            mediaPlayer?.release()
-            mediaPlayer = MediaPlayer()
-
-            // Find resource ID by name
-            val resourceId = resources.getIdentifier(
-                audioRef, "raw", requireContext().packageName
-            )
-
-            if (resourceId != 0) {
-                val afd = resources.openRawResourceFd(resourceId)
-                mediaPlayer?.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
-                afd.close()
-
-                mediaPlayer?.prepare()
-                mediaPlayer?.start()
-            } else {
-                Log.e("LearningFragment", getString(R.string.audio_not_found, audioRef))
-            }
-        } catch (e: Exception) {
-            Log.e("LearningFragment", getString(R.string.error_playing_audio), e)
-        }
-    }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        mediaPlayer?.release()
-        mediaPlayer = null
+        audioPlayer.releaseMediaPlayer()
     }
 }

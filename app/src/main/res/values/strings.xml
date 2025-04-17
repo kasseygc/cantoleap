@@ -56,4 +56,5 @@
     <!-- Error Messages -->
     <string name="audio_not_found">Audio resource not found: %1$s</string>
     <string name="error_playing_audio">Error playing audio</string>
+    <string name="audio_load_error">Failed to load audio pronunciation</string>
 </resources>

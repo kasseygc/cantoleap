@@ -1,6 +1,6 @@
 package com.example.project.ui.practice
 
-import android.media.MediaPlayer
+import com.example.project.utils.AudioPlayer
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -16,7 +16,8 @@ import com.example.project.R
 class PracticeFragment : Fragment() {
 
     private lateinit var practiceViewModel: PracticeViewModel
-    private var mediaPlayer: MediaPlayer? = null
+    private lateinit var audioPlayer: AudioPlayer
+    private lateinit var loadingIndicator: ProgressBar
 
     private lateinit var progressBar: ProgressBar
     private lateinit var progressTextView: TextView
@@ -38,7 +39,11 @@ class PracticeFragment : Fragment() {
 
         practiceViewModel = ViewModelProvider(this).get(PracticeViewModel::class.java)
 
+        // Initialize AudioPlayer
+        audioPlayer = AudioPlayer(requireContext())
+
         // Initialize views
+        loadingIndicator = root.findViewById(R.id.audio_loading_indicator)
         progressBar = root.findViewById(R.id.progress_quiz)
         progressTextView = root.findViewById(R.id.text_quiz_progress)
         questionChineseTextView = root.findViewById(R.id.text_question_chinese)
@@ -84,7 +89,28 @@ class PracticeFragment : Fragment() {
 
                     // Set up audio button
                     questionAudioButton.setOnClickListener {
-                        playAudio(item.audioRef)
+                        loadingIndicator.visibility = View.VISIBLE
+                        audioPlayer.playAudio(
+                            audioRef = item.audioRef,
+                            onStarted = {
+                                requireActivity().runOnUiThread {
+                                    loadingIndicator.visibility = View.GONE
+                                }
+                            },
+                            onError = {
+                                requireActivity().runOnUiThread {
+                                    loadingIndicator.visibility = View.GONE
+                                    Toast.makeText(
+                                        context,
+                                        getString(R.string.audio_load_error),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            },
+                            onCompleted = {
+                                // Audio playback finished
+                            }
+                        )
                     }
                 }
             }
@@ -115,7 +141,7 @@ class PracticeFragment : Fragment() {
                 // Show correct/incorrect feedback
                 showAnswerFeedback()
             } else {
-                Toast.makeText(context, "Please select an answer", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, getString(R.string.select_an_answer), Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -208,34 +234,8 @@ class PracticeFragment : Fragment() {
         }
     }
 
-    private fun playAudio(audioRef: String) {
-        try {
-            mediaPlayer?.release()
-            mediaPlayer = MediaPlayer()
-
-            // Find resource ID by name
-            val resourceId = resources.getIdentifier(
-                audioRef, "raw", requireContext().packageName
-            )
-
-            if (resourceId != 0) {
-                val afd = resources.openRawResourceFd(resourceId)
-                mediaPlayer?.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
-                afd.close()
-
-                mediaPlayer?.prepare()
-                mediaPlayer?.start()
-            } else {
-                Log.e("PracticeFragment", getString(R.string.audio_not_found, audioRef))
-            }
-        } catch (e: Exception) {
-            Log.e("PracticeFragment", getString(R.string.error_playing_audio), e)
-        }
-    }
-
     override fun onDestroyView() {
         super.onDestroyView()
-        mediaPlayer?.release()
-        mediaPlayer = null
+        audioPlayer.releaseMediaPlayer()
     }
 }

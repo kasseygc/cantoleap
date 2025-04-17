@@ -10,6 +10,7 @@ import android.widget.RadioGroup
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import com.example.project.R
+import com.example.project.ui.utils.DemoManager
 
 
 class DemoModeDialog : DialogFragment() {

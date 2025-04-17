@@ -1,4 +1,4 @@
-package com.example.project.ui.demo
+package com.example.project.ui.utils
 
 import android.content.Context
 import android.util.Log
