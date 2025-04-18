@@ -23,7 +23,6 @@ class LearningViewModel(application: Application) : AndroidViewModel(application
             "你好",
             "nei5 hou2",
             "Hello",
-            "audio_hello",
             1
         )
     }
@@ -44,9 +43,9 @@ class LearningViewModel(application: Application) : AndroidViewModel(application
 
     // Sample vocabulary for testing
     private var vocabularyItems = listOf(
-        VocabularyItem("1", "Greetings", "你好", "nei5 hou2", "Hello", "audio_hello", 1),
-        VocabularyItem("2", "Greetings", "早晨", "zou2 san4", "Good morning", "audio_morning", 1),
-        VocabularyItem("3", "Greetings", "再見", "zoi3 gin3", "Goodbye", "audio_goodbye", 1)
+        VocabularyItem("1", "Greetings", "你好", "nei5 hou2", "Hello", 1),
+        VocabularyItem("2", "Greetings", "早晨", "zou2 san4", "Good morning", 1),
+        VocabularyItem("3", "Greetings", "再見", "zoi3 gin3", "Goodbye", 1)
     )
 
     private var currentIndex = 0

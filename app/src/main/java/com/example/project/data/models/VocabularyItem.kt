@@ -6,6 +6,5 @@ data class VocabularyItem(
     val chinese: String,
     val romanization: String,
     val english: String,
-    val audioRef: String,
     val difficulty: Int = 1
 )

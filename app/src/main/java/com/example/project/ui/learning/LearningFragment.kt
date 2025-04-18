@@ -1,6 +1,5 @@
 package com.example.project.ui.learning
 
-import com.example.project.utils.AudioPlayer
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -10,7 +9,6 @@ import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.Button
-import android.widget.ImageButton
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
@@ -22,7 +20,6 @@ import com.example.project.R
 class LearningFragment : Fragment() {
 
     private lateinit var learningViewModel: LearningViewModel
-    private lateinit var audioPlayer: AudioPlayer
     private lateinit var loadingIndicator: ProgressBar
 
     private lateinit var cardView: CardView
@@ -31,7 +28,6 @@ class LearningFragment : Fragment() {
     private lateinit var meaningTextView: TextView
     private lateinit var progressBar: ProgressBar
     private lateinit var progressTextView: TextView
-    private lateinit var audioButton: ImageButton
     private lateinit var knowButton: Button
     private lateinit var stillLearningButton: Button
 
@@ -44,9 +40,6 @@ class LearningFragment : Fragment() {
     ): View? {
         val root = inflater.inflate(R.layout.fragment_learning, container, false)
 
-        // Initialize AudioPlayer
-        audioPlayer = AudioPlayer(requireContext())
-
         // Initialize views
         loadingIndicator = root.findViewById(R.id.audio_loading_indicator)
         learningViewModel = ViewModelProvider(this).get(LearningViewModel::class.java)
@@ -58,7 +51,6 @@ class LearningFragment : Fragment() {
         meaningTextView = root.findViewById(R.id.text_meaning)
         progressBar = root.findViewById(R.id.progress_learning)
         progressTextView = root.findViewById(R.id.text_progress)
-        audioButton = root.findViewById(R.id.button_audio)
         knowButton = root.findViewById(R.id.button_know)
         stillLearningButton = root.findViewById(R.id.button_still_learning)
 
@@ -90,30 +82,6 @@ class LearningFragment : Fragment() {
         learningViewModel.totalWords.observe(viewLifecycleOwner) { total ->
             progressBar.max = total
             updateProgressText()
-        }
-
-        // Setup audio button
-        audioButton.setOnClickListener {
-            learningViewModel.currentWord.value?.let { word ->
-                loadingIndicator.visibility = View.VISIBLE
-                audioPlayer.playAudio(
-                    audioRef = word.audioRef,
-                    onStarted = {
-                        requireActivity().runOnUiThread {
-                            loadingIndicator.visibility = View.GONE
-                        }
-                    },
-                    onError = {
-                        requireActivity().runOnUiThread {
-                            loadingIndicator.visibility = View.GONE
-                            Toast.makeText(context, getString(R.string.audio_load_error), Toast.LENGTH_SHORT).show()
-                        }
-                    },
-                    onCompleted = {
-                        // Audio playback finished
-                    }
-                )
-            }
         }
 
         // Setup buttons
@@ -185,6 +153,5 @@ class LearningFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        audioPlayer.releaseMediaPlayer()
     }
 }

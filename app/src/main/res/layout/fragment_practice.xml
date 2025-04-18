@@ -25,9 +25,9 @@
         android:layout_height="24dp"
         android:layout_marginStart="8dp"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@id/button_audio"
-        app:layout_constraintStart_toEndOf="@id/button_audio"
-        app:layout_constraintTop_toTopOf="@id/button_audio" />
+        app:layout_constraintBottom_toBottomOf="@id/card_question"
+        app:layout_constraintStart_toEndOf="@id/card_question"
+        app:layout_constraintTop_toTopOf="@id/card_question" />
 
     <TextView
         android:id="@+id/text_quiz_progress"
@@ -38,19 +38,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/progress_quiz" />
-
-    <ImageButton
-        android:id="@+id/button_question_audio"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginTop="32dp"
-        android:background="@drawable/circle_button_background"
-        android:contentDescription="@string/play_audio"
-        android:padding="12dp"
-        android:src="@android:drawable/ic_media_play"
-        app:layout_constraintEnd_toStartOf="@id/card_question"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/text_quiz_progress" />
 
     <androidx.cardview.widget.CardView
         android:id="@+id/card_question"

@@ -1,6 +1,5 @@
 package com.example.project.ui.practice
 
-import com.example.project.utils.AudioPlayer
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -16,7 +15,6 @@ import com.example.project.R
 class PracticeFragment : Fragment() {
 
     private lateinit var practiceViewModel: PracticeViewModel
-    private lateinit var audioPlayer: AudioPlayer
     private lateinit var loadingIndicator: ProgressBar
 
     private lateinit var progressBar: ProgressBar
@@ -39,9 +37,6 @@ class PracticeFragment : Fragment() {
 
         practiceViewModel = ViewModelProvider(this).get(PracticeViewModel::class.java)
 
-        // Initialize AudioPlayer
-        audioPlayer = AudioPlayer(requireContext())
-
         // Initialize views
         loadingIndicator = root.findViewById(R.id.audio_loading_indicator)
         progressBar = root.findViewById(R.id.progress_quiz)
@@ -62,7 +57,7 @@ class PracticeFragment : Fragment() {
         optionTexts = listOf(
             root.findViewById(R.id.text_option_1),
             root.findViewById(R.id.text_option_2),
-            root.findViewById(R.id.text_option_3),
+            root.findViewById(R.id.text_option_2),
             root.findViewById(R.id.text_option_4)
         )
 
@@ -86,32 +81,6 @@ class PracticeFragment : Fragment() {
             practiceViewModel.getVocabularyDetails(question.vocabularyItemId) { item ->
                 if (item != null) {
                     questionRomanizationTextView.text = item.romanization
-
-                    // Set up audio button
-                    questionAudioButton.setOnClickListener {
-                        loadingIndicator.visibility = View.VISIBLE
-                        audioPlayer.playAudio(
-                            audioRef = item.audioRef,
-                            onStarted = {
-                                requireActivity().runOnUiThread {
-                                    loadingIndicator.visibility = View.GONE
-                                }
-                            },
-                            onError = {
-                                requireActivity().runOnUiThread {
-                                    loadingIndicator.visibility = View.GONE
-                                    Toast.makeText(
-                                        context,
-                                        getString(R.string.audio_load_error),
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                            },
-                            onCompleted = {
-                                // Audio playback finished
-                            }
-                        )
-                    }
                 }
             }
 
@@ -236,6 +205,5 @@ class PracticeFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        audioPlayer.releaseMediaPlayer()
     }
 }

@@ -26,9 +26,9 @@
         android:layout_height="24dp"
         android:layout_marginStart="8dp"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@id/button_audio"
-        app:layout_constraintStart_toEndOf="@id/button_audio"
-        app:layout_constraintTop_toTopOf="@id/button_audio" />
+        app:layout_constraintBottom_toBottomOf="@id/button_know"
+        app:layout_constraintStart_toEndOf="@id/button_know"
+        app:layout_constraintTop_toTopOf="@id/button_know" />
 
     <TextView
         android:id="@+id/text_progress"
@@ -48,7 +48,7 @@
         android:layout_margin="32dp"
         app:cardCornerRadius="8dp"
         app:cardElevation="8dp"
-        app:layout_constraintBottom_toTopOf="@id/button_audio"
+        app:layout_constraintBottom_toTopOf="@id/button_know"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/text_progress"
@@ -90,19 +90,6 @@
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
-
-    <ImageButton
-        android:id="@+id/button_audio"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:layout_marginBottom="32dp"
-        android:background="@drawable/circle_button_background"
-        android:contentDescription="@string/play_audio"
-        android:padding="16dp"
-        android:src="@android:drawable/ic_media_play"
-        app:layout_constraintBottom_toTopOf="@id/button_know"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/button_know"
