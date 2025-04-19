@@ -15,8 +15,8 @@ class DatabaseManager(context: Context) : SQLiteOpenHelper(
         const val DATABASE_VERSION = 1
 
         // Table names
-        const val TABLE_CATEGORIES = "categories"
-        const val TABLE_VOCABULARY = "vocabulary"
+        const val TABLE_CATEGORIES = "vocabulary_categories"
+        const val TABLE_VOCABULARY = "vocabulary_items"
 
         // Column names for categories
         const val COLUMN_ID = "id"
@@ -29,15 +29,7 @@ class DatabaseManager(context: Context) : SQLiteOpenHelper(
         const val COLUMN_CHINESE = "chinese"
         const val COLUMN_ROMANIZATION = "romanization"
         const val COLUMN_ENGLISH = "english"
-        const val COLUMN_AUDIO_REF = "audio_ref"
         const val COLUMN_DIFFICULTY = "difficulty"
-
-        // Progress table
-        const val TABLE_PROGRESS = "progress"
-        const val COLUMN_USER_ID = "user_id"
-        const val COLUMN_VOCABULARY_ID = "vocabulary_id"
-        const val COLUMN_STATUS = "status"
-        const val COLUMN_LAST_REVIEWED = "last_reviewed"
     }
 
     private val dbInitializer = DatabaseInitializer(context)
@@ -69,8 +61,7 @@ class DatabaseManager(context: Context) : SQLiteOpenHelper(
                 Log.d("DatabaseManager", "Categories table exists with $categoriesCount entries")
             } catch (e: Exception) {
                 Log.e("DatabaseManager", "Categories table doesn't exist or is corrupt", e)
-                // Create tables if they don't exist
-                createTables(writableDatabase)
+                // No need to create tables here, as DatabaseInitializer should have handled it
                 return
             }
 
@@ -85,8 +76,7 @@ class DatabaseManager(context: Context) : SQLiteOpenHelper(
                 Log.d("DatabaseManager", "Vocabulary table exists with $vocabCount entries")
             } catch (e: Exception) {
                 Log.e("DatabaseManager", "Vocabulary table doesn't exist or is corrupt", e)
-                // Create tables if they don't exist
-                createTables(writableDatabase)
+                // No need to create tables here, as DatabaseInitializer should have handled it
                 return
             }
 
@@ -137,25 +127,10 @@ class DatabaseManager(context: Context) : SQLiteOpenHelper(
                 $COLUMN_CHINESE TEXT NOT NULL,
                 $COLUMN_ROMANIZATION TEXT NOT NULL,
                 $COLUMN_ENGLISH TEXT NOT NULL,
-                $COLUMN_AUDIO_REF TEXT,
                 $COLUMN_DIFFICULTY INTEGER DEFAULT 1,
                 FOREIGN KEY($COLUMN_CATEGORY_ID) REFERENCES $TABLE_CATEGORIES($COLUMN_ID)
             )
         """)
-
-        // Create progress table
-        db.execSQL("""
-            CREATE TABLE IF NOT EXISTS $TABLE_PROGRESS (
-                $COLUMN_USER_ID TEXT NOT NULL,
-                $COLUMN_VOCABULARY_ID TEXT NOT NULL,
-                $COLUMN_STATUS INTEGER DEFAULT 0,
-                $COLUMN_LAST_REVIEWED INTEGER,
-                PRIMARY KEY ($COLUMN_USER_ID, $COLUMN_VOCABULARY_ID),
-                FOREIGN KEY($COLUMN_VOCABULARY_ID) REFERENCES $TABLE_VOCABULARY($COLUMN_ID)
-            )
-        """)
-
-        Log.d("DatabaseManager", "Tables created successfully")
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -262,7 +237,6 @@ class DatabaseManager(context: Context) : SQLiteOpenHelper(
                     val chinese = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CHINESE))
                     val romanization = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ROMANIZATION))
                     val english = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ENGLISH))
-                    val audioRef = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_AUDIO_REF))
                     val difficulty = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_DIFFICULTY))
 
                     items.add(
@@ -272,7 +246,6 @@ class DatabaseManager(context: Context) : SQLiteOpenHelper(
                             chinese = chinese,
                             romanization = romanization,
                             english = english,
-                            audioRef = audioRef,
                             difficulty = difficulty
                         )
                     )
@@ -311,7 +284,6 @@ class DatabaseManager(context: Context) : SQLiteOpenHelper(
                 val chinese = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CHINESE))
                 val romanization = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ROMANIZATION))
                 val english = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ENGLISH))
-                val audioRef = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_AUDIO_REF))
                 val difficulty = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_DIFFICULTY))
 
                 item = VocabularyItem(
@@ -320,7 +292,6 @@ class DatabaseManager(context: Context) : SQLiteOpenHelper(
                     chinese = chinese,
                     romanization = romanization,
                     english = english,
-                    audioRef = audioRef,
                     difficulty = difficulty
                 )
             }

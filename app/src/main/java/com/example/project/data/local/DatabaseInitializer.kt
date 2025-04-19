@@ -4,23 +4,24 @@ import android.content.Context
 import android.util.Log
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
+
+private const val DATABASE_NAME = "cantoleap.db"
 
 class DatabaseInitializer(private val context: Context) {
-    private val dbPath = context.getDatabasePath("cantoleap.db").path
-    private val assetDbPath = "cantoleap.db"
 
     fun initializeDatabase(): Boolean {
-        val dbFile = File(dbPath)
+        val dbFile = context.getDatabasePath(DATABASE_NAME)
 
         // Skip if database already exists
         if (dbFile.exists()) {
-            Log.d("DatabaseInitializer", "Database already exists at: $dbPath")
+            Log.d("DatabaseInitializer", "Database already exists at: ${dbFile.path}")
             // Check file size to make sure it's not empty
             if (dbFile.length() > 0) {
-                return true
+                return true;
             } else {
-                Log.w("DatabaseInitializer", "Database exists but is empty, will try to recreate")
-                dbFile.delete()
+                Log.w("DatabaseInitializer", "Database exists but is empty, will try to recreate");
+                dbFile.delete();
             }
         }
 
