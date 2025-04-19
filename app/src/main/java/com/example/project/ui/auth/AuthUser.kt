@@ -127,7 +127,6 @@ class AuthUser(private val registry: ActivityResultRegistry) :
                 .createSignInIntentBuilder()
                 .setAvailableProviders(providers)
                 .setIsSmartLockEnabled(false)
-                .setTheme(R.style.Theme_FirebaseAuth_NoActionBar)
                 .build()
 
             signInLauncher.launch(signInIntent)

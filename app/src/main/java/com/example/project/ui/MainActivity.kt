@@ -1,4 +1,4 @@
-package com.example.project.ui.auth
+package com.example.project
 
 import android.os.Bundle
 import android.util.Log
@@ -8,9 +8,10 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
-import com.example.project.R
 import com.example.project.databinding.ActivityMainBinding
-
+import com.example.project.ui.auth.AuthUser
+import com.example.project.ui.auth.User
+import com.example.project.ui.auth.isInvalid
 
 class MainActivity : AppCompatActivity() {
 
@@ -18,7 +19,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var authUser: AuthUser // Declare AuthUser
 
     companion object {
-        private const val TAG = "MainActivity"
+        private const val TAG = "MainActivity" // Add TAG
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,7 +30,7 @@ class MainActivity : AppCompatActivity() {
 
         val navView: BottomNavigationView = binding.navView
 
-        val navController = findNavController(R.id.nav_view)
+        val navController = findNavController(R.id.nav_host_fragment_activity_main)
         // Define top level destinations - no back button for these
         val appBarConfiguration = AppBarConfiguration(
             setOf(
@@ -44,7 +45,6 @@ class MainActivity : AppCompatActivity() {
         lifecycle.addObserver(authUser) // Add as lifecycle observer
 
         observeUserAuthentication() // Set up observer for user changes
-
     }
 
     override fun onStart() {
@@ -66,7 +66,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateUI(user: User) {
+        // Update UI elements based on user authentication state
+        // For example, show user name or a login/logout button
         binding.toolbar.title = if (user.isInvalid()) "Not Logged In" else user.name
-
     }
 }
