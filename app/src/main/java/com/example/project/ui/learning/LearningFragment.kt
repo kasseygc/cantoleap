@@ -20,7 +20,7 @@ import com.example.project.R
 class LearningFragment : Fragment() {
 
     private lateinit var learningViewModel: LearningViewModel
-    private lateinit var loadingIndicator: ProgressBar
+
 
     private lateinit var cardView: CardView
     private lateinit var chineseTextView: TextView
@@ -41,7 +41,7 @@ class LearningFragment : Fragment() {
         val root = inflater.inflate(R.layout.fragment_learning, container, false)
 
         // Initialize views
-        loadingIndicator = root.findViewById(R.id.audio_loading_indicator)
+
         learningViewModel = ViewModelProvider(this).get(LearningViewModel::class.java)
 
         // Initialize views

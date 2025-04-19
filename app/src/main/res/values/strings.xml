@@ -11,7 +11,6 @@
     <string name="still_learning">Still learning</string>
     <string name="submit">Submit</string>
     <string name="next">Next</string>
-    <string name="play_audio">Play pronunciation</string>
     <string name="close">Close</string>
 
     <!-- Authentication -->
@@ -20,18 +19,6 @@
     <string name="email">Email</string>
     <string name="password">Password</string>
     <string name="logout">Logout</string>
-
-    <!-- Demo Mode -->
-    <string name="demo_mode">Demo Mode</string>
-    <string name="reset_progress">Reset Progress</string>
-    <string name="switch_user">Switch User</string>
-    <string name="reset_community">Reset Community Content</string>
-    <string name="user_type_beginner">Beginner</string>
-    <string name="user_type_intermediate">Intermediate</string>
-    <string name="user_type_advanced">Advanced</string>
-    <string name="reset_progress_section">Reset User Progress</string>
-    <string name="switch_user_section">Switch Demo User</string>
-    <string name="reset_community_section">Reset Community Content</string>
 
     <!-- Toast Messages -->
     <string name="progress_reset">Progress has been reset</string>
@@ -53,8 +40,5 @@
     <string name="category_useful_phrases">Essential everyday expressions</string>
     <string name="category_default">Cantonese vocabulary</string>
 
-    <!-- Error Messages -->
-    <string name="audio_not_found">Audio resource not found: %1$s</string>
-    <string name="error_playing_audio">Error playing audio</string>
-    <string name="audio_load_error">Failed to load audio pronunciation</string>
+
 </resources>

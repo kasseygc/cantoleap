@@ -15,13 +15,13 @@ import com.example.project.R
 class PracticeFragment : Fragment() {
 
     private lateinit var practiceViewModel: PracticeViewModel
-    private lateinit var loadingIndicator: ProgressBar
+
 
     private lateinit var progressBar: ProgressBar
     private lateinit var progressTextView: TextView
     private lateinit var questionChineseTextView: TextView
     private lateinit var questionRomanizationTextView: TextView
-    private lateinit var questionAudioButton: ImageButton
+
     private lateinit var optionCards: List<CardView>
     private lateinit var optionTexts: List<TextView>
     private lateinit var submitButton: Button
@@ -38,12 +38,11 @@ class PracticeFragment : Fragment() {
         practiceViewModel = ViewModelProvider(this).get(PracticeViewModel::class.java)
 
         // Initialize views
-        loadingIndicator = root.findViewById(R.id.audio_loading_indicator)
+
         progressBar = root.findViewById(R.id.progress_quiz)
         progressTextView = root.findViewById(R.id.text_quiz_progress)
         questionChineseTextView = root.findViewById(R.id.text_question_chinese)
         questionRomanizationTextView = root.findViewById(R.id.text_question_romanization)
-        questionAudioButton = root.findViewById(R.id.button_question_audio)
         submitButton = root.findViewById(R.id.button_submit)
 
         // Initialize option cards and texts

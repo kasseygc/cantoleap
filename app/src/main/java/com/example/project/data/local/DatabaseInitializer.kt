@@ -10,12 +10,16 @@ private const val DATABASE_NAME = "cantoleap.db"
 
 class DatabaseInitializer(private val context: Context) {
 
+    // Declare assetDbPath and dbPath here
+    private val assetDbPath = "cantoleap.db"
+    private val dbPath = context.getDatabasePath(DATABASE_NAME).path
+
     fun initializeDatabase(): Boolean {
-        val dbFile = context.getDatabasePath(DATABASE_NAME)
+        val dbFile = File(dbPath)
 
         // Skip if database already exists
         if (dbFile.exists()) {
-            Log.d("DatabaseInitializer", "Database already exists at: ${dbFile.path}")
+            Log.d("DatabaseInitializer", "Database already exists at: $dbPath")
             // Check file size to make sure it's not empty
             if (dbFile.length() > 0) {
                 return true;

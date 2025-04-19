@@ -30,6 +30,13 @@ class DatabaseManager(context: Context) : SQLiteOpenHelper(
         const val COLUMN_ROMANIZATION = "romanization"
         const val COLUMN_ENGLISH = "english"
         const val COLUMN_DIFFICULTY = "difficulty"
+
+        // Progress table
+        const val TABLE_PROGRESS = "progress"
+        const val COLUMN_USER_ID = "user_id"
+        const val COLUMN_VOCABULARY_ID = "vocabulary_id"
+        const val COLUMN_STATUS = "status"
+        const val COLUMN_LAST_REVIEWED = "last_reviewed"
     }
 
     private val dbInitializer = DatabaseInitializer(context)
