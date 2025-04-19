@@ -1,17 +1,25 @@
-package com.example.project
+package com.example.project.ui.auth
 
 import android.os.Bundle
+import android.util.Log
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import com.example.project.R
 import com.example.project.databinding.ActivityMainBinding
+
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private lateinit var authUser: AuthUser // Declare AuthUser
+
+    companion object {
+        private const val TAG = "MainActivity"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,7 +29,7 @@ class MainActivity : AppCompatActivity() {
 
         val navView: BottomNavigationView = binding.navView
 
-        val navController = findNavController(R.id.nav_host_fragment_activity_main)
+        val navController = findNavController(R.id.nav_view)
         // Define top level destinations - no back button for these
         val appBarConfiguration = AppBarConfiguration(
             setOf(
@@ -30,5 +38,35 @@ class MainActivity : AppCompatActivity() {
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+
+        // Initialize AuthUser
+        authUser = AuthUser(activityResultRegistry)
+        lifecycle.addObserver(authUser) // Add as lifecycle observer
+
+        observeUserAuthentication() // Set up observer for user changes
+
+    }
+
+    override fun onStart() {
+        super.onStart()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+    }
+
+    private fun observeUserAuthentication() {
+        authUser.observeUser().observe(this) { user ->
+            Log.d(TAG, "User changed: $user")
+            updateUI(user)
+            if (user.isInvalid()) {
+                authUser.login() // Trigger login if invalid
+            }
+        }
+    }
+
+    private fun updateUI(user: User) {
+        binding.toolbar.title = if (user.isInvalid()) "Not Logged In" else user.name
+
     }
 }
