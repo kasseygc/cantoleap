@@ -10,9 +10,11 @@ import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import com.example.project.R
 import com.example.project.data.models.VocabularyItem
 import com.example.project.ui.notes.NotesBottomSheet
@@ -56,7 +58,7 @@ class LearningFragment : Fragment() {
         stillLearningButton = root.findViewById(R.id.button_still_learning)
         viewNotesButton = root.findViewById(R.id.button_view_notes)
 
-        // Add these views if not already there
+        // Initialize other views
         loadingIndicator = root.findViewById(R.id.loading_indicator)
         errorTextView = root.findViewById(R.id.text_error)
 
@@ -65,6 +67,7 @@ class LearningFragment : Fragment() {
 
         setupObservers()
         setupListeners()
+        setupBackNavigation()
 
         // Load the category from arguments
         val categoryId = arguments?.getString("category")
@@ -76,6 +79,19 @@ class LearningFragment : Fragment() {
         }
 
         return root
+    }
+
+    private fun setupBackNavigation() {
+        // Handle back button press
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    // Navigate back to vocabulary screen
+                    findNavController().navigate(R.id.action_navigation_learning_to_navigation_vocabulary)
+                }
+            }
+        )
     }
 
     private fun setupObservers() {
@@ -128,8 +144,8 @@ class LearningFragment : Fragment() {
         }
 
         viewNotesButton.setOnClickListener {
-            learningViewModel.currentVocabularyId.value?.let { id ->
-                showNotesBottomSheet(id)
+            learningViewModel.currentWord.value?.let { word ->
+                showNotesBottomSheet(word.id)
             }
         }
     }
@@ -141,13 +157,8 @@ class LearningFragment : Fragment() {
     }
 
     private fun updateProgressUI(progress: Int) {
-        val total = learningViewModel.totalWords.value ?: 0
-
-        // Use string resource with formatting
-        progressTextView.text = getString(R.string.progress_format, progress, total)
-
-        // Update progress bar
         progressBar.progress = progress
+        progressTextView.text = getString(R.string.progress_format, progress, learningViewModel.totalWords.value ?: 0)
     }
 
     private fun flipCard() {

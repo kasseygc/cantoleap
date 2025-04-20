@@ -14,37 +14,41 @@ class ProgressRepository(application: Application) {
 
     fun getUserProgress(userId: String): LiveData<Map<String, Int>> {
         val progressLiveData = MutableLiveData<Map<String, Int>>()
-        val progressMap = mutableMapOf<String, Int>()
 
-        try {
+        // Create the map on the background thread, but post value on main thread
+        Thread {
             val db = dbManager.readableDatabase
+            val progressMap = mutableMapOf<String, Int>()
 
-            val cursor = db.query(
-                DatabaseManager.TABLE_PROGRESS,
-                arrayOf(DatabaseManager.COLUMN_VOCABULARY_ID, DatabaseManager.COLUMN_STATUS),
-                "${DatabaseManager.COLUMN_USER_ID} = ?",
-                arrayOf(userId),
-                null,
-                null,
-                null
-            )
+            try {
+                val cursor = db.query(
+                    DatabaseManager.TABLE_PROGRESS,
+                    arrayOf(DatabaseManager.COLUMN_VOCABULARY_ID, DatabaseManager.COLUMN_STATUS),
+                    "${DatabaseManager.COLUMN_USER_ID} = ?",
+                    arrayOf(userId),
+                    null,
+                    null,
+                    null
+                )
 
-            if (cursor.moveToFirst()) {
-                do {
-                    val itemId = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseManager.COLUMN_VOCABULARY_ID))
-                    val status = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseManager.COLUMN_STATUS))
-                    progressMap[itemId] = status
-                } while (cursor.moveToNext())
+                if (cursor.moveToFirst()) {
+                    do {
+                        val itemId = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseManager.COLUMN_VOCABULARY_ID))
+                        val status = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseManager.COLUMN_STATUS))
+                        progressMap[itemId] = status
+                    } while (cursor.moveToNext())
+                }
+
+                cursor.close()
+                db.close()
+
+                // Post value on main thread
+                progressLiveData.postValue(progressMap)
+
+            } catch (e: Exception) {
+                Log.e("ProgressRepository", "Error getting user progress", e)
             }
-
-            cursor.close()
-            db.close()
-
-            progressLiveData.value = progressMap
-
-        } catch (e: Exception) {
-            Log.e("ProgressRepository", "Error getting user progress", e)
-        }
+        }.start()
 
         return progressLiveData
     }

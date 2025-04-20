@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.util.Log
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.navigation.NavController
+import androidx.navigation.NavOptions
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
@@ -17,6 +19,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var authUser: AuthUser
+    private lateinit var navController: NavController
 
     companion object {
         private const val TAG = "MainActivity"
@@ -36,8 +39,8 @@ class MainActivity : AppCompatActivity() {
 
         val navView: BottomNavigationView = binding.navView
 
-        // Using the correct ID that matches the XML
-        val navController = findNavController(R.id.nav_host_fragment_activity_main)
+        // Initialize NavController
+        navController = findNavController(R.id.nav_host_fragment_activity_main)
 
         // Define top level destinations - no back button for these
         val appBarConfiguration = AppBarConfiguration(
@@ -46,10 +49,43 @@ class MainActivity : AppCompatActivity() {
             )
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
-        navView.setupWithNavController(navController)
 
+        // Set up bottom navigation with special handling
+        navView.setOnItemSelectedListener { menuItem ->
+            // Clear the back stack when switching between tabs
+            val builder = NavOptions.Builder()
+                .setLaunchSingleTop(true)
+                .setPopUpTo(
+                    when (menuItem.itemId) {
+                        R.id.navigation_vocabulary -> R.id.navigation_vocabulary
+                        R.id.navigation_learning -> R.id.navigation_learning
+                        R.id.navigation_practice -> R.id.navigation_practice
+                        else -> R.id.navigation_vocabulary
+                    }, true
+                )
 
-        observeUserAuthentication() // Set up observer for user changes
+            when (menuItem.itemId) {
+                R.id.navigation_vocabulary ->
+                    navController.navigate(R.id.navigation_vocabulary, null, builder.build())
+                R.id.navigation_learning -> {
+                    // If coming from another tab, we need to pass a default category
+                    val bundle = Bundle().apply {
+                        putString("category", "greetings") // Default category
+                    }
+                    navController.navigate(R.id.navigation_learning, bundle, builder.build())
+                }
+                R.id.navigation_practice ->
+                    navController.navigate(R.id.navigation_practice, null, builder.build())
+            }
+
+            true
+        }
+
+        observeUserAuthentication()
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        return navController.navigateUp() || super.onSupportNavigateUp()
     }
 
     private fun observeUserAuthentication() {
@@ -69,10 +105,5 @@ class MainActivity : AppCompatActivity() {
         } else {
             "${getString(R.string.app_name)} - ${user.name}"
         }
-    }
-
-    override fun onSupportNavigateUp(): Boolean {
-        val navController = findNavController(R.id.nav_host_fragment_activity_main)
-        return navController.navigateUp() || super.onSupportNavigateUp()
     }
 }

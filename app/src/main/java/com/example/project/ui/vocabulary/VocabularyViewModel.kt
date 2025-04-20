@@ -10,11 +10,13 @@ import com.example.project.data.repository.DataRepository
 import com.example.project.data.repository.ProgressRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class VocabularyViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = DataRepository(application)
     private val progressRepository = ProgressRepository(application)
+
+    // User ID (replace with actual user authentication logic)
+    private val userId = "defaultUser"
 
     private val _categories = MutableLiveData<List<VocabularyCategory>>()
     val categories: LiveData<List<VocabularyCategory>> = _categories
@@ -32,46 +34,52 @@ class VocabularyViewModel(application: Application) : AndroidViewModel(applicati
     private val _filteredCategories = MutableLiveData<List<VocabularyCategory>>()
     val filteredCategories: LiveData<List<VocabularyCategory>> = _filteredCategories
 
-    // User ID (replace with actual user authentication logic)
-    private val userId = "defaultUser"
-
     init {
         loadCategories()
     }
 
     fun loadCategories() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             try {
-                _loading.postValue(true)
+                _loading.value = true
+
+                // Get categories from repository
                 val categoryList = repository.getCategories()
 
-                // Get progress for each category
-                val updatedList = updateCategoriesWithProgress(categoryList)
+                // Get progress on main thread
+                val progress = progressRepository.getUserProgress(userId)
 
-                _categories.postValue(updatedList)
-                _filteredCategories.postValue(updatedList)
-                _error.postValue(null)
+                // Observe progress and update categories when it changes
+                progress.observeForever { progressMap ->
+                    // Update progress for each category (still on main thread)
+                    val updatedCategories = updateCategoriesWithProgress(categoryList, progressMap)
+                    _categories.value = updatedCategories
+                    _filteredCategories.value = updatedCategories
+
+                    // Only observe once, then remove
+                    progress.removeObserver { }
+                }
+
+                _error.value = null
             } catch (e: Exception) {
-                _error.postValue("Failed to load categories: ${e.message}")
+                _error.value = "Failed to load categories: ${e.message}"
             } finally {
-                _loading.postValue(false)
+                _loading.value = false
             }
         }
     }
 
-    private suspend fun updateCategoriesWithProgress(categories: List<VocabularyCategory>): List<VocabularyCategory> {
-        // Get user progress
-        val progressMap = progressRepository.getUserProgress(userId).value ?: emptyMap()
-
+    private fun updateCategoriesWithProgress(
+        categories: List<VocabularyCategory>,
+        progressMap: Map<String, Int>
+    ): List<VocabularyCategory> {
+        // Run this on main thread
         return categories.map { category ->
-            // Get words for this category
             val words = repository.getVocabularyByCategory(category.id)
-
-            // Calculate progress percentage
             val learnedCount = words.count { progressMap[it.id] ?: 0 > 0 }
             val progressPercent = if (words.isEmpty()) 0 else (learnedCount * 100 / words.size)
 
-            // Create updated category with progress
+            // Create a new category with the updated progress
             category.copy(progress = progressPercent)
         }
     }
