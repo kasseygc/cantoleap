@@ -1,7 +1,6 @@
 package com.example.project.ui.practice
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,21 +9,28 @@ import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import com.example.project.R
 
 class PracticeFragment : Fragment() {
 
     private lateinit var practiceViewModel: PracticeViewModel
 
-
     private lateinit var progressBar: ProgressBar
     private lateinit var progressTextView: TextView
     private lateinit var questionChineseTextView: TextView
     private lateinit var questionRomanizationTextView: TextView
+    private lateinit var questionCard: CardView
 
     private lateinit var optionCards: List<CardView>
     private lateinit var optionTexts: List<TextView>
     private lateinit var submitButton: Button
+
+    // Quiz completion views
+    private lateinit var quizCompletedLayout: LinearLayout
+    private lateinit var scoreSummaryTextView: TextView
+    private lateinit var tryAgainButton: Button
+    private lateinit var backToCategoriesButton: Button
 
     private var selectedOptionIndex: Int? = null
 
@@ -35,15 +41,22 @@ class PracticeFragment : Fragment() {
     ): View? {
         val root = inflater.inflate(R.layout.fragment_practice, container, false)
 
+        // Initialize ViewModel
         practiceViewModel = ViewModelProvider(this).get(PracticeViewModel::class.java)
 
         // Initialize views
-
         progressBar = root.findViewById(R.id.progress_quiz)
         progressTextView = root.findViewById(R.id.text_quiz_progress)
         questionChineseTextView = root.findViewById(R.id.text_question_chinese)
         questionRomanizationTextView = root.findViewById(R.id.text_question_romanization)
+        questionCard = root.findViewById(R.id.card_question)
         submitButton = root.findViewById(R.id.button_submit)
+
+        // Initialize quiz completion views
+        quizCompletedLayout = root.findViewById(R.id.layout_quiz_complete)
+        scoreSummaryTextView = root.findViewById(R.id.text_score_summary)
+        tryAgainButton = root.findViewById(R.id.button_try_again)
+        backToCategoriesButton = root.findViewById(R.id.button_back_to_categories)
 
         // Initialize option cards and texts
         optionCards = listOf(
@@ -56,7 +69,7 @@ class PracticeFragment : Fragment() {
         optionTexts = listOf(
             root.findViewById(R.id.text_option_1),
             root.findViewById(R.id.text_option_2),
-            root.findViewById(R.id.text_option_2),
+            root.findViewById(R.id.text_option_3),
             root.findViewById(R.id.text_option_4)
         )
 
@@ -67,6 +80,21 @@ class PracticeFragment : Fragment() {
             }
         }
 
+        setupObservers()
+        setupClickListeners()
+
+        // Get category from arguments and start quiz
+        arguments?.getString("category")?.let { category ->
+            practiceViewModel.startQuiz(category)
+        } ?: run {
+            // If no category provided, start a mixed quiz
+            practiceViewModel.startMixedQuiz()
+        }
+
+        return root
+    }
+
+    private fun setupObservers() {
         // Observe current question
         practiceViewModel.currentQuestion.observe(viewLifecycleOwner) { question ->
             // Reset selection
@@ -101,7 +129,23 @@ class PracticeFragment : Fragment() {
             updateProgressUI()
         }
 
-        // Submit button
+        // Observe quiz completion
+        practiceViewModel.isQuizComplete.observe(viewLifecycleOwner) { isComplete ->
+            if (isComplete) {
+                showQuizCompletedUI()
+            } else {
+                hideQuizCompletedUI()
+            }
+        }
+
+        // Observe score updates
+        practiceViewModel.score.observe(viewLifecycleOwner) { score ->
+            val total = practiceViewModel.totalQuestions.value ?: 0
+            scoreSummaryTextView.text = getString(R.string.score_format, score, total)
+        }
+    }
+
+    private fun setupClickListeners() {
         submitButton.setOnClickListener {
             if (selectedOptionIndex != null) {
                 practiceViewModel.submitAnswer(selectedOptionIndex!!)
@@ -113,23 +157,31 @@ class PracticeFragment : Fragment() {
             }
         }
 
-        // Get category from arguments and start quiz
-        arguments?.getString("category")?.let { category ->
-            practiceViewModel.startQuiz(category)
-        } ?: run {
-            // If no category provided, start a mixed quiz
-            practiceViewModel.startMixedQuiz()
+        tryAgainButton.setOnClickListener {
+            // Restart the current quiz
+            arguments?.getString("category")?.let { category ->
+                practiceViewModel.startQuiz(category)
+            } ?: run {
+                practiceViewModel.startMixedQuiz()
+            }
         }
 
-        return root
+        backToCategoriesButton.setOnClickListener {
+            // Navigate back to vocabulary categories
+            findNavController().navigate(R.id.navigation_vocabulary)
+        }
     }
+
 
     private fun updateProgressUI() {
         val current = practiceViewModel.currentQuestionIndex.value ?: 0
         val total = practiceViewModel.totalQuestions.value ?: 0
 
-        progressBar.progress = current + 1
+        // Use string resource with formatting
         progressTextView.text = getString(R.string.progress_format, current + 1, total)
+
+        // Update progress bar
+        progressBar.progress = current + 1
     }
 
     private fun selectOption(index: Int) {
@@ -200,6 +252,35 @@ class PracticeFragment : Fragment() {
                 }
             }
         }
+    }
+
+    private fun showQuizCompletedUI() {
+        // Hide question UI
+        questionCard.visibility = View.GONE
+        for (card in optionCards) {
+            card.visibility = View.GONE
+        }
+        submitButton.visibility = View.GONE
+
+        // Show completion UI
+        quizCompletedLayout.visibility = View.VISIBLE
+
+        // Update score summary
+        val score = practiceViewModel.score.value ?: 0
+        val total = practiceViewModel.totalQuestions.value ?: 0
+        scoreSummaryTextView.text = getString(R.string.score_format, score, total)
+    }
+
+    private fun hideQuizCompletedUI() {
+        // Show question UI
+        questionCard.visibility = View.VISIBLE
+        for (card in optionCards) {
+            card.visibility = View.VISIBLE
+        }
+        submitButton.visibility = View.VISIBLE
+
+        // Hide completion UI
+        quizCompletedLayout.visibility = View.GONE
     }
 
     override fun onDestroyView() {

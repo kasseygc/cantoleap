@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
+
     <item
         android:id="@+id/navigation_vocabulary"
-        android:icon="@drawable/ic_home_black_24dp"
+        android:icon="@drawable/ic_category"
         android:title="@string/title_vocabulary" />
+
     <item
         android:id="@+id/navigation_learning"
-        android:icon="@drawable/ic_dashboard_black_24dp"
+        android:icon="@drawable/ic_vocabulary"
         android:title="@string/title_learning" />
+
     <item
         android:id="@+id/navigation_practice"
-        android:icon="@drawable/ic_notifications_black_24dp"
+        android:icon="@drawable/ic_practice"
         android:title="@string/title_practice" />
+
 </menu>

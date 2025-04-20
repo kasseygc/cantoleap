@@ -1,11 +1,9 @@
 package com.example.project.ui.learning
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.Button
@@ -16,11 +14,12 @@ import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.project.R
+import com.example.project.data.models.VocabularyItem
+import com.example.project.ui.notes.NotesBottomSheet
 
 class LearningFragment : Fragment() {
 
     private lateinit var learningViewModel: LearningViewModel
-
 
     private lateinit var cardView: CardView
     private lateinit var chineseTextView: TextView
@@ -30,6 +29,9 @@ class LearningFragment : Fragment() {
     private lateinit var progressTextView: TextView
     private lateinit var knowButton: Button
     private lateinit var stillLearningButton: Button
+    private lateinit var viewNotesButton: Button
+    private lateinit var loadingIndicator: ProgressBar
+    private lateinit var errorTextView: TextView
 
     private var isFrontShowing = true
 
@@ -40,8 +42,7 @@ class LearningFragment : Fragment() {
     ): View? {
         val root = inflater.inflate(R.layout.fragment_learning, container, false)
 
-        // Initialize views
-
+        // Initialize ViewModel
         learningViewModel = ViewModelProvider(this).get(LearningViewModel::class.java)
 
         // Initialize views
@@ -53,103 +54,133 @@ class LearningFragment : Fragment() {
         progressTextView = root.findViewById(R.id.text_progress)
         knowButton = root.findViewById(R.id.button_know)
         stillLearningButton = root.findViewById(R.id.button_still_learning)
+        viewNotesButton = root.findViewById(R.id.button_view_notes)
+
+        // Add these views if not already there
+        loadingIndicator = root.findViewById(R.id.loading_indicator)
+        errorTextView = root.findViewById(R.id.text_error)
 
         // Initial setup
         meaningTextView.visibility = View.GONE
 
-        // Setup card flip animation
-        cardView.setOnClickListener {
-            flipCard()
+        setupObservers()
+        setupListeners()
+
+        // Load the category from arguments
+        val categoryId = arguments?.getString("category")
+        if (categoryId != null) {
+            learningViewModel.loadCategory(categoryId)
+        } else {
+            // Default to first category if none provided
+            learningViewModel.loadCategory("greetings")
         }
 
-        // Observe current word
+        return root
+    }
+
+    private fun setupObservers() {
         learningViewModel.currentWord.observe(viewLifecycleOwner) { word ->
-            chineseTextView.text = word.chinese
-            romanizationTextView.text = word.romanization
-            meaningTextView.text = word.english
-
-            // Reset card to front side
-            if (!isFrontShowing) {
-                flipCard()
-            }
+            updateUI(word)
         }
 
-        // Observe progress
         learningViewModel.progress.observe(viewLifecycleOwner) { progress ->
-            progressBar.progress = progress
+            updateProgressUI(progress)
         }
 
         learningViewModel.totalWords.observe(viewLifecycleOwner) { total ->
             progressBar.max = total
-            updateProgressText()
+            updateProgressUI(learningViewModel.progress.value ?: 0)
         }
 
-        // Setup buttons
+        learningViewModel.loading.observe(viewLifecycleOwner) { isLoading ->
+            loadingIndicator.visibility = if (isLoading) View.VISIBLE else View.GONE
+            cardView.visibility = if (isLoading) View.GONE else View.VISIBLE
+            knowButton.visibility = if (isLoading) View.GONE else View.VISIBLE
+            stillLearningButton.visibility = if (isLoading) View.GONE else View.VISIBLE
+            viewNotesButton.visibility = if (isLoading) View.GONE else View.VISIBLE
+        }
+
+        learningViewModel.error.observe(viewLifecycleOwner) { error ->
+            if (error != null) {
+                errorTextView.text = error
+                errorTextView.visibility = View.VISIBLE
+                cardView.visibility = View.GONE
+                knowButton.visibility = View.GONE
+                stillLearningButton.visibility = View.GONE
+                viewNotesButton.visibility = View.GONE
+            } else {
+                errorTextView.visibility = View.GONE
+            }
+        }
+    }
+
+    private fun setupListeners() {
         knowButton.setOnClickListener {
             learningViewModel.markAsKnown()
-            learningViewModel.moveToNextWord()
         }
 
         stillLearningButton.setOnClickListener {
             learningViewModel.moveToNextWord()
         }
 
-        // Get category from arguments if available
-        arguments?.getString("category")?.let { category ->
-            learningViewModel.loadCategory(category)
+        cardView.setOnClickListener {
+            flipCard()
         }
 
-        return root
+        viewNotesButton.setOnClickListener {
+            learningViewModel.currentVocabularyId.value?.let { id ->
+                showNotesBottomSheet(id)
+            }
+        }
     }
 
-    private fun updateProgressText() {
-        val progress = learningViewModel.progress.value ?: 0
+    private fun updateUI(word: VocabularyItem) {
+        chineseTextView.text = word.chinese
+        romanizationTextView.text = word.romanization
+        meaningTextView.text = word.english
+    }
+
+    private fun updateProgressUI(progress: Int) {
         val total = learningViewModel.totalWords.value ?: 0
+
+        // Use string resource with formatting
         progressTextView.text = getString(R.string.progress_format, progress, total)
+
+        // Update progress bar
+        progressBar.progress = progress
     }
 
     private fun flipCard() {
-        // Load animations
-        val frontAnimation = AnimationUtils.loadAnimation(context,
-            if (isFrontShowing) R.anim.flip_front_out else R.anim.flip_front_in)
-        val backAnimation = AnimationUtils.loadAnimation(context,
-            if (isFrontShowing) R.anim.flip_back_in else R.anim.flip_back_out)
+        val flipIn = AnimationUtils.loadAnimation(context, if (isFrontShowing) R.anim.flip_back_in else R.anim.flip_front_in)
+        val flipOut = AnimationUtils.loadAnimation(context, if (isFrontShowing) R.anim.flip_front_out else R.anim.flip_back_out)
 
-        frontAnimation.setAnimationListener(object : Animation.AnimationListener {
-            override fun onAnimationStart(animation: Animation?) {}
+        flipOut.setAnimationListener(object : Animation.AnimationListener {
+            override fun onAnimationStart(animation: Animation) {}
 
-            override fun onAnimationEnd(animation: Animation?) {
-                // Toggle visibility when front animation ends
+            override fun onAnimationEnd(animation: Animation) {
                 if (isFrontShowing) {
-                    meaningTextView.visibility = View.VISIBLE
+                    chineseTextView.visibility = View.GONE
                     romanizationTextView.visibility = View.GONE
+                    meaningTextView.visibility = View.VISIBLE
                 } else {
-                    meaningTextView.visibility = View.GONE
+                    chineseTextView.visibility = View.VISIBLE
                     romanizationTextView.visibility = View.VISIBLE
+                    meaningTextView.visibility = View.GONE
                 }
-
-                // Start back animation
-                cardView.startAnimation(backAnimation)
+                cardView.startAnimation(flipIn)
             }
 
-            override fun onAnimationRepeat(animation: Animation?) {}
+            override fun onAnimationRepeat(animation: Animation) {}
         })
 
-        backAnimation.setAnimationListener(object : Animation.AnimationListener {
-            override fun onAnimationStart(animation: Animation?) {}
-
-            override fun onAnimationEnd(animation: Animation?) {
-                // Update state after animation completes
-                isFrontShowing = !isFrontShowing
-            }
-
-            override fun onAnimationRepeat(animation: Animation?) {}
-        })
-
-        // Start front animation
-        cardView.startAnimation(frontAnimation)
+        cardView.startAnimation(flipOut)
+        isFrontShowing = !isFrontShowing
     }
 
+    private fun showNotesBottomSheet(vocabularyId: String) {
+        val bottomSheet = NotesBottomSheet.newInstance(vocabularyId)
+        bottomSheet.show(childFragmentManager, "notesBottomSheet")
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()

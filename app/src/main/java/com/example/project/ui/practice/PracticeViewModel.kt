@@ -7,65 +7,131 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.project.data.models.QuizQuestion
 import com.example.project.data.models.VocabularyItem
-import com.example.project.data.repository.VocabularyRepository
+import com.example.project.data.repository.DataRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class PracticeViewModel(application: Application) : AndroidViewModel(application) {
+    private val repository = DataRepository(application)
 
-    private val repository = VocabularyRepository(application)
-    private var quizQuestions: List<QuizQuestion> = emptyList()
-
-    private val _currentQuestionIndex = MutableLiveData<Int>().apply {
-        value = 0
-    }
-    val currentQuestionIndex: LiveData<Int> = _currentQuestionIndex
-
-    private val _totalQuestions = MutableLiveData<Int>().apply {
-        value = 0
-    }
-    val totalQuestions: LiveData<Int> = _totalQuestions
-
-    private val _currentQuestion = MutableLiveData<QuizQuestion>().apply {
-        // Sample data for testing
-        value = QuizQuestion(
-            "男仔",
-            listOf("Man", "Woman", "Boy", "Girl"),
-            2,
-            "1"
-        )
-    }
-
+    private val _currentQuestion = MutableLiveData<QuizQuestion>()
     val currentQuestion: LiveData<QuizQuestion> = _currentQuestion
 
-    private val _score = MutableLiveData<Int>().apply {
-        value = 0
-    }
+    private val _currentQuestionIndex = MutableLiveData<Int>(0)
+    val currentQuestionIndex: LiveData<Int> = _currentQuestionIndex
 
+    private val _totalQuestions = MutableLiveData<Int>(0)
+    val totalQuestions: LiveData<Int> = _totalQuestions
+
+    private val _score = MutableLiveData<Int>(0)
     val score: LiveData<Int> = _score
 
-    private val _isQuizComplete = MutableLiveData<Boolean>().apply {
-        value = false
-    }
-
+    private val _isQuizComplete = MutableLiveData<Boolean>(false)
     val isQuizComplete: LiveData<Boolean> = _isQuizComplete
 
+    private val _loading = MutableLiveData<Boolean>(false)
+    val loading: LiveData<Boolean> = _loading
+
+    private val _error = MutableLiveData<String?>(null)
+    val error: LiveData<String?> = _error
+
+    private var quizQuestions = listOf<QuizQuestion>()
     private var selectedAnswerIndex: Int? = null
 
-    fun selectAnswer(index: Int) {
-        selectedAnswerIndex = index
+    // User ID (replace with actual user authentication logic)
+    private val userId = "defaultUser"
+
+    fun startQuiz(category: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                _loading.postValue(true)
+                val vocabularyItems = repository.getVocabularyByCategory(category)
+                val questions = generateQuizQuestions(vocabularyItems)
+
+                withContext(Dispatchers.Main) {
+                    if (questions.isNotEmpty()) {
+                        quizQuestions = questions
+                        _currentQuestionIndex.value = 0
+                        _currentQuestion.value = questions[0]
+                        _totalQuestions.value = questions.size
+                        _score.value = 0
+                        _isQuizComplete.value = false
+                        _error.value = null
+                    } else {
+                        _error.value = "Not enough vocabulary items to create a quiz"
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    _error.value = "Error creating quiz: ${e.message}"
+                }
+            } finally {
+                _loading.postValue(false)
+            }
+        }
     }
 
-    fun isAnswerSelected(): Boolean {
-        return selectedAnswerIndex != null
+    fun startMixedQuiz() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                _loading.postValue(true)
+                val categories = repository.getCategories()
+                val allItems = mutableListOf<VocabularyItem>()
+
+                for (category in categories) {
+                    val items = repository.getVocabularyByCategory(category.id)
+                    allItems.addAll(items)
+                }
+
+                val questions = generateQuizQuestions(allItems)
+
+                withContext(Dispatchers.Main) {
+                    if (questions.isNotEmpty()) {
+                        quizQuestions = questions
+                        _currentQuestionIndex.value = 0
+                        _currentQuestion.value = questions[0]
+                        _totalQuestions.value = questions.size
+                        _score.value = 0
+                        _isQuizComplete.value = false
+                        _error.value = null
+                    } else {
+                        _error.value = "Not enough vocabulary items to create a quiz"
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    _error.value = "Error creating quiz: ${e.message}"
+                }
+            } finally {
+                _loading.postValue(false)
+            }
+        }
     }
 
-    fun submitAnswer(selectedIndex: Int) {
-        val currentQuestion = _currentQuestion.value ?: return
+    private fun generateQuizQuestions(vocabularyItems: List<VocabularyItem>): List<QuizQuestion> {
+        if (vocabularyItems.size < 4) return emptyList()
 
-        if (selectedIndex == currentQuestion.correctAnswerIndex) {
-            _score.value = (_score.value ?: 0) + 1
+        val validItems = vocabularyItems.filter {
+            it.chinese.isNotEmpty() && it.english.isNotEmpty()
+        }
+
+        if (validItems.size < 4) return emptyList()
+
+        // Take up to 10 items for the quiz
+        val questionItems = validItems.shuffled().take(10)
+
+        return questionItems.map { item ->
+            // For each question, get 3 incorrect options
+            val otherItems = validItems.filter { it.id != item.id }.shuffled().take(3)
+            val options = (otherItems.map { it.english } + item.english).shuffled()
+
+            QuizQuestion(
+                prompt = item.chinese,
+                options = options,
+                correctAnswerIndex = options.indexOf(item.english),
+                vocabularyItemId = item.id
+            )
         }
     }
 
@@ -78,49 +144,21 @@ class PracticeViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun startQuiz(category: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val vocabularyItems = repository.getVocabularyByCategory(category)
-            val questions = generateQuizQuestions(vocabularyItems)
+    fun submitAnswer(selectedIndex: Int) {
+        selectedAnswerIndex = selectedIndex
 
-            withContext(Dispatchers.Main) {
-                quizQuestions = questions
-                _totalQuestions.value = questions.size
-                _score.value = 0
-                _isQuizComplete.value = false
+        val currentQuestion = _currentQuestion.value ?: return
+        val currentScore = _score.value ?: 0
 
-                if (questions.isNotEmpty()) {
-                    _currentQuestionIndex.value = 0
-                    _currentQuestion.value = questions[0]
-                }
-            }
-        }
-    }
+        if (selectedIndex == currentQuestion.correctAnswerIndex) {
+            _score.value = currentScore + 1
 
-    fun startMixedQuiz() {
-        viewModelScope.launch(Dispatchers.IO) {
-            // Get all categories
-            val categories = repository.getCategories()
-            val allItems = mutableListOf<VocabularyItem>()
-
-            // Get vocabulary items from each category
-            for (category in categories) {
-                val items = repository.getVocabularyByCategory(category.id)
-                allItems.addAll(items)
-            }
-
-            // Create quiz questions from all items
-            val questions = generateQuizQuestions(allItems)
-
-            withContext(Dispatchers.Main) {
-                quizQuestions = questions
-                _totalQuestions.value = questions.size
-                _score.value = 0
-                _isQuizComplete.value = false
-
-                if (questions.isNotEmpty()) {
-                    _currentQuestionIndex.value = 0
-                    _currentQuestion.value = questions[0]
+            // Update progress locally
+            viewModelScope.launch {
+                try {
+                    repository.updateProgress(userId, currentQuestion.vocabularyItemId, 1)
+                } catch (e: Exception) {
+                    // Just continue if update fails
                 }
             }
         }
@@ -136,33 +174,6 @@ class PracticeViewModel(application: Application) : AndroidViewModel(application
             selectedAnswerIndex = null
         } else {
             _isQuizComplete.value = true
-        }
-    }
-
-    // Generate quiz questions from vocabulary items
-    private fun generateQuizQuestions(vocabularyItems: List<VocabularyItem>): List<QuizQuestion> {
-        if (vocabularyItems.isEmpty()) return emptyList()
-
-        // Filter out items with insufficient data
-        val validItems = vocabularyItems.filter {
-            it.chinese.isNotEmpty() && it.english.isNotEmpty()
-        }
-
-        if (validItems.size < 4) return emptyList() // Need at least 4 items for multiple choice
-
-        // Create questions (up to 10)
-        val questionItems = validItems.shuffled().take(10)
-        return questionItems.mapIndexed { index, item ->
-            // For each question, get 3 incorrect options
-            val otherItems = validItems.filter { it.id != item.id }.shuffled().take(3)
-            val options = (otherItems.map { it.english } + item.english).shuffled()
-
-            QuizQuestion(
-                prompt = item.chinese,
-                options = options,
-                correctAnswerIndex = options.indexOf(item.english),
-                vocabularyItemId = item.id
-            )
         }
     }
 }

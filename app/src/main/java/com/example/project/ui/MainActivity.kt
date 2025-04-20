@@ -16,10 +16,10 @@ import com.example.project.ui.auth.isInvalid
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private lateinit var authUser: AuthUser // Declare AuthUser
+    private lateinit var authUser: AuthUser
 
     companion object {
-        private const val TAG = "MainActivity" // Add TAG
+        private const val TAG = "MainActivity"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,9 +28,17 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        setSupportActionBar(binding.toolbar)
+
+        // Initialize AuthUser
+        authUser = AuthUser(activityResultRegistry)
+        lifecycle.addObserver(authUser)
+
         val navView: BottomNavigationView = binding.navView
 
+        // Using the correct ID that matches the XML
         val navController = findNavController(R.id.nav_host_fragment_activity_main)
+
         // Define top level destinations - no back button for these
         val appBarConfiguration = AppBarConfiguration(
             setOf(
@@ -40,19 +48,8 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
-        // Initialize AuthUser
-        authUser = AuthUser(activityResultRegistry)
-        lifecycle.addObserver(authUser) // Add as lifecycle observer
 
         observeUserAuthentication() // Set up observer for user changes
-    }
-
-    override fun onStart() {
-        super.onStart()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
     }
 
     private fun observeUserAuthentication() {
@@ -67,7 +64,15 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateUI(user: User) {
         // Update UI elements based on user authentication state
-        // For example, show user name or a login/logout button
-        binding.toolbar.title = if (user.isInvalid()) "Not Logged In" else user.name
+        binding.toolbar.title = if (user.isInvalid()) {
+            getString(R.string.app_name)
+        } else {
+            "${getString(R.string.app_name)} - ${user.name}"
+        }
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        val navController = findNavController(R.id.nav_host_fragment_activity_main)
+        return navController.navigateUp() || super.onSupportNavigateUp()
     }
 }

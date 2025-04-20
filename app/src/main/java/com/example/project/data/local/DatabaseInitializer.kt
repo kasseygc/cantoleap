@@ -1,6 +1,7 @@
 package com.example.project.data.local
 
 import android.content.Context
+import android.database.sqlite.SQLiteDatabase
 import android.util.Log
 import java.io.File
 import java.io.FileOutputStream
@@ -17,15 +18,17 @@ class DatabaseInitializer(private val context: Context) {
     fun initializeDatabase(): Boolean {
         val dbFile = File(dbPath)
 
-        // Skip if database already exists
+        // If database already exists, verify it
         if (dbFile.exists()) {
             Log.d("DatabaseInitializer", "Database already exists at: $dbPath")
-            // Check file size to make sure it's not empty
-            if (dbFile.length() > 0) {
-                return true;
+
+            // Verify the database has the required tables
+            if (verifyDatabase()) {
+                return true
             } else {
-                Log.w("DatabaseInitializer", "Database exists but is empty, will try to recreate");
-                dbFile.delete();
+                // If verification fails, delete and try again
+                Log.w("DatabaseInitializer", "Database verification failed, recreating")
+                dbFile.delete()
             }
         }
 
@@ -33,20 +36,8 @@ class DatabaseInitializer(private val context: Context) {
         dbFile.parentFile?.mkdirs()
 
         try {
-            // Check if asset exists with more detailed logging
-            val assets = context.assets
-            val assetsList = assets.list("") ?: emptyArray()
-
-            if (!assetsList.contains(assetDbPath)) {
-                Log.e("DatabaseInitializer", "Database asset not found: $assetDbPath")
-                Log.d("DatabaseInitializer", "Available assets: ${assetsList.joinToString()}")
-                return false
-            }
-
-            Log.d("DatabaseInitializer", "Found database asset: $assetDbPath")
-
             // Copy database from assets
-            val inputStream = assets.open(assetDbPath)
+            val inputStream = context.assets.open(assetDbPath)
             val outputStream = FileOutputStream(dbFile)
 
             val buffer = ByteArray(1024)
@@ -64,36 +55,50 @@ class DatabaseInitializer(private val context: Context) {
 
             Log.d("DatabaseInitializer", "Database copied successfully. Size: $totalBytes bytes")
 
-            // Verify the file was copied correctly
-            if (dbFile.exists() && dbFile.length() > 0) {
-                return true
-            } else {
-                Log.e("DatabaseInitializer", "Database file not created properly after copy")
-                return false
-            }
+            // Verify the database after copying
+            return verifyDatabase()
         } catch (e: Exception) {
             Log.e("DatabaseInitializer", "Error copying database", e)
             return false
         }
     }
 
-    // Helper function to delete existing database (useful for debugging)
-    fun deleteExistingDatabase(): Boolean {
-        val dbFile = File(dbPath)
-        val journalFile = File("$dbPath-journal")
+    private fun verifyDatabase(): Boolean {
+        try {
+            val db = SQLiteDatabase.openDatabase(dbPath, null, SQLiteDatabase.OPEN_READONLY)
 
-        var success = true
+            // Check if the categories table exists
+            val cursor = db.rawQuery(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='categories'",
+                null
+            )
 
-        if (dbFile.exists()) {
-            success = dbFile.delete() && success
-            Log.d("DatabaseInitializer", "Deleted existing database: $success")
+            val hasCategories = cursor.count > 0
+            cursor.close()
+
+            if (!hasCategories) {
+                Log.e("DatabaseInitializer", "Database verification failed: categories table not found")
+                return false
+            }
+
+            // Count categories to make sure there's data
+            val countCursor = db.rawQuery("SELECT COUNT(*) FROM categories", null)
+            countCursor.moveToFirst()
+            val count = countCursor.getInt(0)
+            countCursor.close()
+
+            db.close()
+
+            if (count == 0) {
+                Log.e("DatabaseInitializer", "Database verification failed: categories table is empty")
+                return false
+            }
+
+            Log.d("DatabaseInitializer", "Database verification successful: found $count categories")
+            return true
+        } catch (e: Exception) {
+            Log.e("DatabaseInitializer", "Database verification failed with exception", e)
+            return false
         }
-
-        if (journalFile.exists()) {
-            success = journalFile.delete() && success
-            Log.d("DatabaseInitializer", "Deleted journal file: $success")
-        }
-
-        return success
     }
 }
