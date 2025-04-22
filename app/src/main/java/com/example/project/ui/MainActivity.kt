@@ -100,10 +100,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateUI(user: User) {
         // Update UI elements based on user authentication state
-        binding.toolbar.title = if (user.isInvalid()) {
-            getString(R.string.app_name)
-        } else {
-            "${getString(R.string.app_name)} - ${user.name}"
-        }
+        binding.toolbar.title = "CantoLeap"
     }
 }

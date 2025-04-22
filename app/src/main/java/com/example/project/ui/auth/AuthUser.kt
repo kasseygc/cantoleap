@@ -10,6 +10,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.example.project.R
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract
 import com.google.firebase.auth.FirebaseAuth
@@ -92,25 +93,7 @@ class AuthUser(private val registry: ActivityResultRegistry) :
     private fun user(): FirebaseUser? {
         return Firebase.auth.currentUser
     }
-    fun setDisplayName(displayName: String) {
-        Log.d(TAG, "XXX profile change request")
-        // If no user, no way to set display name, just return
-        val user = user() ?: return
-        // https://firebase.google.com/docs/auth/android/manage-users#update_a_users_profile
-        val profileUpdates = userProfileChangeRequest {
-            this.displayName = displayName
-        }
 
-        user.updateProfile(profileUpdates)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Log.d(TAG, "User profile updated.")
-                    postUserUpdate(user())
-                } else {
-                    Log.e(TAG, "Failed to update profile", task.exception)
-                }
-            }
-    }
     fun login() {
         if (user() == null
             && !pendingLogin
@@ -127,6 +110,7 @@ class AuthUser(private val registry: ActivityResultRegistry) :
                 .createSignInIntentBuilder()
                 .setAvailableProviders(providers)
                 .setIsSmartLockEnabled(false)
+                .setTheme(R.style.FirebaseUI_AuthTheme)
                 .build()
 
             signInLauncher.launch(signInIntent)

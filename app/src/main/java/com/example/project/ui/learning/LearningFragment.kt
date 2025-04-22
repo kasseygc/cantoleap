@@ -179,13 +179,14 @@ class LearningFragment : Fragment() {
                     meaningTextView.visibility = View.GONE
                 }
                 cardView.startAnimation(flipIn)
+                isFrontShowing = !isFrontShowing
             }
 
             override fun onAnimationRepeat(animation: Animation) {}
         })
 
         cardView.startAnimation(flipOut)
-        isFrontShowing = !isFrontShowing
+
     }
 
     private fun showNotesBottomSheet(vocabularyId: String) {
