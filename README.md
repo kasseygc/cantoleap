@@ -1,8 +1,5 @@
 # CantoLeap
 
-**Name:** Kassey Chang
-**Email:** kassey.chang@utexas.edu
-
 ## Description
 
 CantoLeap is a beginner-friendly mobile application designed to help users learn essential Cantonese vocabulary. It provides an interactive and engaging way to acquire practical, everyday Cantonese words and phrases.
